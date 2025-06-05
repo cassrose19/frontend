@@ -9,9 +9,10 @@
 <body class="d-flex flex-column align-items-center justify-content-center vh-100 bg-light">
 
   <h1 class="mb-4">🎵 Welcome to MelodyMind</h1>
-  <p class="mb-4">Log in with Spotify to create playlists based on your music mood</p>
+  <p class="mb-4">Log in to create playlists based on your music mood</p>
 
-  <button onclick="loginWithSpotify()" class="btn btn-success btn-lg">Login with Spotify</button>
+  <button onclick="loginWithSpotify()" class="btn btn-success btn-lg mb-2">Login with Spotify</button>
+  <button onclick="loginWithFirebase()" class="btn btn-primary btn-lg">Login with Firebase</button>
 
   <script>
     const CLIENT_ID = "b6937ebfce5b4e7db6d48ca1eb148796";  
@@ -21,6 +22,11 @@
     function loginWithSpotify() {
       const authUrl = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES)}`;
       window.location.href = authUrl;
+    }
+
+    function loginWithFirebase() {
+    
+      alert('Firebase login not yet implemented');
     }
   </script>
 
