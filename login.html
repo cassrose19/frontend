@@ -1,34 +1,88 @@
 <!-- login.html -->
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Login to MelodyMind</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Firebase SDKs and logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC_Rj7M8HvZKTgy-eWMrrHmmtR1Snh81cM",
+      authDomain: "melodymind-sum2025.firebaseapp.com",
+      projectId: "melodymind-sum2025",
+      storageBucket: "melodymind-sum2025.firebasestorage.app",
+      messagingSenderId: "328293709777",
+      appId: "1:328293709777:web:374aefbd982d9c84d152f0"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Login existing user
+    window.loginWithFirebase = async function () {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        console.log("Logged in:", user.email);
+        window.location.href = "index.html"; // ✅ Redirect to main page
+      } catch (error) {
+        alert("Login failed: " + error.message);
+      }
+    };
+
+    // Sign up new user
+    window.signUpWithFirebase = async function () {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      try {
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const user = userCredential.user;
+        console.log("Signed up:", user.email);
+        window.location.href = "index.html";
+      } catch (error) {
+        alert("Signup failed: " + error.message);
+      }
+    };
+
+    // Spotify login
+    window.loginWithSpotify = function () {
+      const CLIENT_ID = "b6937ebfce5b4e7db6d48ca1eb148796";
+      const REDIRECT_URI = "http://127.0.0.1:5051/callback";
+      const SCOPES = "playlist-modify-private playlist-modify-public";
+
+      const authUrl = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES)}`;
+      window.location.href = authUrl;
+    };
+  </script>
 </head>
+
 <body class="d-flex flex-column align-items-center justify-content-center vh-100 bg-light">
 
   <h1 class="mb-4">🎵 Welcome to MelodyMind</h1>
   <p class="mb-4">Log in to create playlists based on your music mood</p>
 
-  <button onclick="loginWithSpotify()" class="btn btn-success btn-lg mb-2">Login with Spotify</button>
-  <button onclick="loginWithFirebase()" class="btn btn-primary btn-lg">Login with Firebase</button>
+  <!-- Spotify Login -->
+  <button onclick="loginWithSpotify()" class="btn btn-success btn-lg mb-3">Login with Spotify</button>
 
-  <script>
-    const CLIENT_ID = "b6937ebfce5b4e7db6d48ca1eb148796";  
-    const REDIRECT_URI = "http://127.0.0.1:5051/callback";
-    const SCOPES = "playlist-modify-private playlist-modify-public";
-
-    function loginWithSpotify() {
-      const authUrl = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES)}`;
-      window.location.href = authUrl;
-    }
-
-    function loginWithFirebase() {
-    
-      alert('Firebase login not yet implemented');
-    }
-  </script>
+  <!-- Firebase Email/Password Login + Signup -->
+  <div class="bg-white p-4 rounded shadow-sm w-100" style="max-width: 400px;">
+    <h4 class="mb-3">Login or Sign Up with Email</h4>
+    <input type="email" id="email" placeholder="Email" class="form-control mb-2" required />
+    <input type="password" id="password" placeholder="Password" class="form-control mb-3" required />
+    <button onclick="loginWithFirebase()" class="btn btn-primary w-100 mb-2">Login with Firebase</button>
+    <button onclick="signUpWithFirebase()" class="btn btn-outline-primary w-100">Sign Up</button>
+  </div>
 
 </body>
+
 </html>
