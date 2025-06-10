@@ -17,11 +17,12 @@ const firebaseConfig = {
   appId: "1:328293709777:web:374aefbd982d9c84d152f0"
 };
 
+// Firebase setup
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-
+// Gets user input and shows "Loading..." message
 async function searchMusic() {
   const prompt = document.getElementById("prompt").value;
   const responseContainer = document.getElementById("results");
@@ -45,8 +46,8 @@ async function searchMusic() {
     if (Array.isArray(data) && data.length > 0) {
       responseContainer.innerHTML = "";
       // Loops through each song result.
-      // For each song, a div is built containing the song
-      // title, artist, match score, and a spotify link.
+      // For each song, a div is built containing the song title, artist,
+      // match score, a spotify link, and a "+" button
       data.forEach(item => {
         const div = document.createElement("div");
         div.className = "song-item bg-white p-4 rounded-lg shadow-md";
@@ -59,6 +60,7 @@ async function searchMusic() {
             <button class="add-btn" type="button">+</button>
             <div class="playlist-dropdown"></div>
           `;
+        // Loads playlists into dropdown
         const addBtn = div.querySelector('.add-btn');
         const dropdown = div.querySelector('.playlist-dropdown');
         addBtn.addEventListener('click', async () => {
@@ -80,7 +82,8 @@ async function searchMusic() {
 }
 
 let playlists = [];
-
+// Get current user's playlists from Firestore; store 
+// them in 'playlist' variable
 async function fetchPlaylists() {
   const uid = auth.currentUser?.uid;
   if (!uid) return [];
@@ -96,6 +99,8 @@ async function fetchPlaylists() {
   }
 }
 
+// As long as the name isn't already used, create
+// a new empty playlist in Firestore
 async function createPlaylist(name) {
   const uid = auth.currentUser?.uid;
   if (!uid) return null;
@@ -107,6 +112,7 @@ async function createPlaylist(name) {
   return { name };
 }
 
+// Add selected song to the specified playlist, updates Firestore db
 async function addSongToPlaylist(song, playlistName) {
   const uid = auth.currentUser?.uid;
   if (!uid) return;
@@ -124,7 +130,8 @@ async function loadPlaylists(dropdown, song) {
 
   dropdown.innerHTML = '';
 
-  // Show all playlist names
+  // For each playlist, add clickable option that allows users to
+  // add a song to the playlist
   Object.keys(playlists).forEach(playlistName => {
     const opt = document.createElement('div');
     opt.textContent = playlistName;
@@ -150,6 +157,7 @@ async function loadPlaylists(dropdown, song) {
   dropdown.appendChild(createOpt);
 }
 
+// Fetches user playlists on page load
 document.addEventListener('DOMContentLoaded', fetchPlaylists);
 
 // Connect Search button to searchMusic()
