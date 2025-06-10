@@ -21,8 +21,8 @@ button {
 .playlist-dropdown {
   display: none;
   position: absolute;
-  right: 0;
   top: 100%;
+  left: 0;
   background-color: #fff;
   border: 1px solid #ddd;
   z-index: 1000;

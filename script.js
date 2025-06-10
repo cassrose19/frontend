@@ -39,6 +39,7 @@ async function searchMusic() {
           const dropdown = div.querySelector('.playlist-dropdown');
           addBtn.addEventListener('click', async () => {
             await loadPlaylists(dropdown, item);
+            dropdown.style.left = addBtn.offsetLeft + 'px';
             dropdown.classList.toggle('show');
           });
           responseContainer.appendChild(div);
