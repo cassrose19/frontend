@@ -19,6 +19,8 @@
       }
     }
   </script>
+
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body class="min-h-screen bg-gradient-to-br from-pastel-mint to-pastel-blue flex items-center justify-center p-4">
   
@@ -46,115 +48,21 @@
           class="w-full h-32 px-4 py-3 bg-pastel-mint/30 border-2 border-pastel-sage rounded-xl text-gray-700 placeholder-gray-500 focus:outline-none focus:border-pastel-lavender resize-none"
         ></textarea>
         
-        <button 
-          onclick="searchMusic()" 
-          class="w-full bg-pastel-lavender hover:bg-purple-300 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200"
-        >
+        <button class="w-full bg-pastel-lavender hover:bg-purple-300 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200">
           Search Music
         </button>
       </div>
     </div>
 
     <!-- Results Section -->
+     <h2>Results:</h2>
+    <p class="instructions">Click the "+" next to a song to add it to a playlist.</p>
+    
     <div id="results"></div>
     
   </div>
 
-  <script>
-    async function searchMusic() {
-      const prompt = document.getElementById("prompt").value;
-      const responseContainer = document.getElementById("results");
-      
-      if (!prompt.trim()) return;
-      
-      // Show loading
-      responseContainer.innerHTML = `
-        <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 text-center">
-          <p class="text-gray-600">Searching for your perfect music...</p>
-        </div>
-      `;
-
-      try {
-        const response = await fetch("http://localhost:5051/search", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ prompt })
-        });
-        
-        const data = await response.json();
-        console.log("Response data:", data);
-        
-        if (Array.isArray(data) && data.length > 0) {
-          responseContainer.innerHTML = `
-            <div class="space-y-4">
-              <h2 class="text-2xl font-bold text-gray-700 text-center mb-6">Your Music Matches</h2>
-              <div id="results-list"></div>
-            </div>
-          `;
-          
-          const resultsList = document.getElementById("results-list");
-          
-          data.forEach(item => {
-            const div = document.createElement("div");
-            div.className = "bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/50 mb-4";
-            
-            div.innerHTML = `
-              <div class="flex justify-between items-start">
-                <div class="flex-1">
-                  <h3 class="text-xl font-bold text-gray-800 mb-2">${item.title}</h3>
-                  <p class="text-gray-600 mb-3">by ${item.artist}</p>
-                  
-                  ${item.score ? `
-                    <div class="mb-3">
-                      <div class="flex justify-between text-sm text-gray-500 mb-1">
-                        <span>Match Score</span>
-                        <span>${item.score.toFixed(1)}%</span>
-                      </div>
-                      <div class="w-full bg-pastel-mint rounded-full h-2">
-                        <div class="bg-pastel-lavender h-2 rounded-full" style="width: ${Math.min(item.score, 100)}%;"></div>
-                      </div>
-                    </div>
-                  ` : ''}
-                  
-                  ${item.reason ? `
-                    <p class="text-gray-600 text-sm mb-4">${item.reason}</p>
-                  ` : ''}
-                  
-                  ${item.spotify_url ? `
-                    <a href="${item.spotify_url}" target="_blank" rel="noopener noreferrer"
-                       class="inline-flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
-                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
-                      </svg>
-                      <span>Listen on Spotify</span>
-                    </a>
-                  ` : ''}
-                </div>
-              </div>
-            `;
-            
-            resultsList.appendChild(div);
-          });
-          
-        } else {
-          responseContainer.innerHTML = `
-            <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 text-center">
-              <p class="text-gray-600">No results found. Try describing your mood differently!</p>
-            </div>
-          `;
-        }
-      } catch (error) {
-        console.error("Fetch error:", error);
-        responseContainer.innerHTML = `
-          <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 text-center">
-            <p class="text-red-600">Unable to connect to music service. Please try again.</p>
-          </div>
-        `;
-      }
-    }
-  </script>
+   <script type="module" src="script.js"></script>
 
 </body>
 

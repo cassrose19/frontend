@@ -22,43 +22,83 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 
+// CHANGED: Updated searchMusic function to match new HTML structure
 async function searchMusic() {
   const prompt = document.getElementById("prompt").value;
   const responseContainer = document.getElementById("results");
-  responseContainer.innerHTML = "Loading...";
+  
+  if (!prompt.trim()) return;
+  
+  // CHANGED: Updated loading message to match new design
+  responseContainer.innerHTML = `
+    <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 text-center">
+      <p class="text-gray-600">Searching for your perfect music...</p>
+    </div>
+  `;
 
   try {
-    // Sends POST request to the backend API running on port 5051
     const response = await fetch("http://localhost:5051/search", {
-      // Sends user's prompt as a JSON body
       method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({ prompt })
     });
-    // Waits for and parses the JSON response from the backend
+    
     const data = await response.json();
     console.log("Response data:", data);
-
-    // Checks if the returned data is an array of results (songs)
+    
     if (Array.isArray(data) && data.length > 0) {
       responseContainer.innerHTML = "";
-      // Loops through each song result.
-      // For each song, a div is built containing the song
-      // title, artist, match score, and a spotify link.
+      
+      // CHANGED: Updated forEach loop to match new design while keeping playlist functionality
       data.forEach(item => {
         const div = document.createElement("div");
-        div.className = "song-item bg-white p-4 rounded-lg shadow-md";
+        // CHANGED: Updated className to match new design
+        div.className = "song-item bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/50 mb-4";
+        
+        // CHANGED: Updated innerHTML to match new design structure
         div.innerHTML = `
-            <h3 class="text-xl font-semibold text-blue-600">${item.title}</h3>
-            <p class="text-gray-700">by <em>${item.artist}</em></p>
-            <p class="text-sm text-gray-500">Match score: ${item.score ? item.score.toFixed(2) : "N/A"}</p>
-            <p class="text-sm text-gray-600">${item.reason}</p>
-            <a class="text-blue-500 underline mt-2 inline-block" href="${item.spotify_url}" target="_blank">Listen on Spotify</a>
-            <button class="add-btn" type="button">+</button>
-            <div class="playlist-dropdown"></div>
-          `;
+          <div class="flex justify-between items-start">
+            <div class="flex-1">
+              <h3 class="text-xl font-bold text-gray-800 mb-2">${item.title}</h3>
+              <p class="text-gray-600 mb-3">by ${item.artist}</p>
+              
+              ${item.score ? `
+                <div class="mb-3">
+                  <div class="flex justify-between text-sm text-gray-500 mb-1">
+                    <span>Match Score</span>
+                    <span>${item.score.toFixed(1)}%</span>
+                  </div>
+                  <div class="w-full bg-pastel-mint rounded-full h-2">
+                    <div class="bg-pastel-lavender h-2 rounded-full" style="width: ${Math.min(item.score, 100)}%;"></div>
+                  </div>
+                </div>
+              ` : ''}
+              
+              ${item.reason ? `
+                <p class="text-gray-600 text-sm mb-4">${item.reason}</p>
+              ` : ''}
+              
+              <div class="flex items-center justify-between">
+                ${item.spotify_url ? `
+                  <a href="${item.spotify_url}" target="_blank" rel="noopener noreferrer"
+                     class="inline-flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
+                    </svg>
+                    <span>Listen on Spotify</span>
+                  </a>
+                ` : '<div></div>'}
+                
+                <button class="add-btn" type="button">+</button>
+              </div>
+            </div>
+          </div>
+          <div class="playlist-dropdown"></div>
+        `;
+        
+        // UNCHANGED: Keep existing playlist functionality
         const addBtn = div.querySelector('.add-btn');
         const dropdown = div.querySelector('.playlist-dropdown');
         addBtn.addEventListener('click', async () => {
@@ -68,14 +108,22 @@ async function searchMusic() {
         });
         responseContainer.appendChild(div);
       });
-      // If backend doesn't return a list, show a message instead
     } else {
-      console.warn("No valid results:", data);
-      responseContainer.innerHTML = "No results found.";
+      // CHANGED: Updated no results message to match new design
+      responseContainer.innerHTML = `
+        <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 text-center">
+          <p class="text-gray-600">No results found. Try describing your mood differently!</p>
+        </div>
+      `;
     }
   } catch (error) {
     console.error("Fetch error:", error);
-    responseContainer.innerHTML = "An error occurred.";
+    // CHANGED: Updated error message to match new design
+    responseContainer.innerHTML = `
+      <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 text-center">
+        <p class="text-red-600">Unable to connect to music service. Please try again.</p>
+      </div>
+    `;
   }
 }
 
@@ -115,6 +163,7 @@ async function addSongToPlaylist(song, playlistName) {
   playlists[playlistName].push(song);
 
   await setDoc(doc(db, "users", uid), { playlists }, { merge: true });
+  alert(`Added "${song.title}" to playlist "${playlistName}"!`);
 }
 
 async function loadPlaylists(dropdown, song) {
@@ -160,3 +209,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
+// ADDED: Close dropdown when clicking outside
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.song-item')) {
+    document.querySelectorAll('.playlist-dropdown').forEach(dropdown => {
+      dropdown.classList.remove('show');
+    });
+  }
+});
