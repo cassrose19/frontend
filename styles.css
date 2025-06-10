@@ -1,18 +1,64 @@
 body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    background-color: #f2f2f2;
-  }
-  textarea {
-    width: 100%;
-    height: 80px;
-    font-size: 16px;
-  }
-  button {
-    margin-top: 10px;
-    padding: 10px 20px;
-    font-size: 16px;
-  }
-  #results {
-    margin-top: 20px;
-  }
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  background-color: #f2f2f2;
+}
+
+textarea {
+  width: 100%;
+  height: 80px;
+  font-size: 16px;
+}
+
+button {
+  margin-top: 10px;
+  padding: 10px 20px;
+  font-size: 16px;
+}
+
+.song-item { position: relative; }
+.add-btn { margin-left: 10px; }
+.playlist-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  z-index: 1000;
+  min-width: 160px;
+}
+.playlist-dropdown div {
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.playlist-dropdown div:hover {
+  background-color: #f2f2f2;
+}
+.playlist-dropdown.show { display: block; }
+
+#results {
+  margin-top: 20px;
+}
+
+.instructions {
+  font-size: 14px;
+  color: #555;
+}
+
+.google-btn {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 25px;
+  padding: 10px 15px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #555;
+  transition: all 0.2s ease;
+}
+
+.google-btn:hover {
+  background-color: #f7f7f7;
+  border-color: #dfdede;
+  cursor: pointer;
+}
