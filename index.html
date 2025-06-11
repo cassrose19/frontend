@@ -1,24 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MelodyMind</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            'pastel-mint': '#E7F2D0',
+            'pastel-sage': '#BEDDB3', 
+            'pastel-lavender': '#B2A3D4',
+            'pastel-blue': '#A8D8EA'
+          }
+        }
+      }
+    }
+  </script>
+
   <link rel="stylesheet" href="styles.css">
 </head>
+<body class="min-h-screen bg-gradient-to-br from-pastel-mint to-pastel-blue flex items-center justify-center p-4">
+  
+  <div class="w-full max-w-2xl">
+    
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <div class="flex items-center justify-center mb-4">
+        <svg class="w-10 h-10 text-pastel-lavender mr-3" fill="currentColor" viewBox="0 0 24 24">
+          <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z"/>
+        </svg>
+        <h1 class="text-4xl font-bold text-gray-700">MelodyMind</h1>
+      </div>
+      <p class="text-gray-600 text-lg">
+        Describe what you're in the mood to listen to
+      </p>
+    </div>
 
-<body>
-  <h1>MelodyMind 🎵</h1>
-  <p>Describe what you're in the mood to listen to:</p>
+    <!-- Search Box -->
+    <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-8 shadow-lg border border-white/50 mb-6">
+      <div class="space-y-4">
+        <textarea 
+          id="prompt" 
+          placeholder="e.g., music for relaxing by the beach, upbeat workout songs, cozy rainy day vibes..."
+          class="w-full h-32 px-4 py-3 bg-pastel-mint/30 border-2 border-pastel-sage rounded-xl text-gray-700 placeholder-gray-500 focus:outline-none focus:border-pastel-lavender resize-none"
+        ></textarea>
+        
+        <button class="w-full bg-pastel-lavender hover:bg-purple-300 text-white font-semibold py-3 px-6 rounded-xl transition-colors duration-200">
+          Search Music
+        </button>
+      </div>
+    </div>
 
-  <textarea id="prompt" placeholder="e.g., music for relaxing by the beach"></textarea><br>
-  <button>Search</button>
+    <!-- Results Section -->
+     <h2>Results:</h2>
+    <p class="instructions">Click the "+" next to a song to add it to a playlist.</p>
+    
+    <div id="results"></div>
+    
+  </div>
 
-  <h2>Results:</h2>
-  <p class="instructions">Click the "+" next to a song to add it to a playlist.</p>
-  <div id="results"></div>
-
-  <script type="module" src="script.js"></script>
+   <script type="module" src="script.js"></script>
 
 </body>
 
