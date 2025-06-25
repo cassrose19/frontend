@@ -27,9 +27,9 @@ const db = getFirestore(app);
 async function searchMusic() {
   const prompt = document.getElementById("prompt").value;
   const responseContainer = document.getElementById("results");
-  
+
   if (!prompt.trim()) return;
-  
+
   // CHANGED: Updated loading message to match new design
   responseContainer.innerHTML = `
     <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 text-center">
@@ -45,19 +45,19 @@ async function searchMusic() {
       },
       body: JSON.stringify({ prompt })
     });
-    
+
     const data = await response.json();
     console.log("Response data:", data);
-    
+
     if (Array.isArray(data) && data.length > 0) {
       responseContainer.innerHTML = "";
-      
+
       // CHANGED: Updated forEach loop to match new design while keeping playlist functionality
       data.forEach(item => {
         const div = document.createElement("div");
         // CHANGED: Updated className to match new design
         div.className = "song-item bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/50 mb-4";
-        
+
         // CHANGED: Updated innerHTML to match new design structure
         div.innerHTML = `
           <div class="flex justify-between items-start">
@@ -98,15 +98,28 @@ async function searchMusic() {
           </div>
           <div class="playlist-dropdown"></div>
         `;
-        
+
         // UNCHANGED: Keep existing playlist functionality
         const addBtn = div.querySelector('.add-btn');
         const dropdown = div.querySelector('.playlist-dropdown');
-        addBtn.addEventListener('click', async () => {
+        addBtn.addEventListener('click', async (event) => {
           await loadPlaylists(dropdown, item);
+          const songItem = event.currentTarget.closest('.song-item');
+          songItem.classList.toggle('active');
           dropdown.style.left = addBtn.offsetLeft + 'px';
           dropdown.classList.toggle('show');
         });
+
+        // Close and remove active class
+        document.addEventListener('click', (e) => {
+          if (!e.target.closest('.song-item')) {
+            document.querySelectorAll('.song-item.active').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.playlist-dropdown.show').forEach(dropdown => {
+              dropdown.classList.remove('show');
+            });
+          }
+        });
+
         responseContainer.appendChild(div);
       });
     } else {
