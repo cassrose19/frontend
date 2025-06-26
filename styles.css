@@ -18,27 +18,28 @@ button {
 
 .song-item { position: relative; }
 .add-btn { margin-left: 10px; }
+
 .playlist-dropdown {
-  display: none;
   position: absolute;
-  top: 100%;
-  left: 0;
-  background-color: #fff;
-  border: 1px solid #ddd;
   z-index: 1000;
-  min-width: 160px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 0.375rem;
+  padding: 0.5rem;
+  min-width: 150px;
+  display: none;
 }
+
+.playlist-dropdown.show {
+  display: block;
+}
+
 .playlist-dropdown div {
   padding: 6px 10px;
   cursor: pointer;
 }
 .playlist-dropdown div:hover {
   background-color: #f2f2f2;
-}
-.playlist-dropdown.show { display: block; }
-
-#results {
-  margin-top: 20px;
 }
 
 .instructions {
@@ -63,27 +64,42 @@ button {
   cursor: pointer;
 }
 
-/* Display dropdown playlist menus in front of returned results */
-.playlist-dropdown {
-  position: absolute;
-  z-index: 1000;
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 0.375rem;
-  padding: 0.5rem;
-  min-width: 150px;
-}
-
-.playlist-dropdown.show {
-  display: block;
-}
-.playlist-dropdown {
-  display: none;
-}
 .song-item {
   position: relative;
   z-index: 1;
 }
 .song-item.active {
   z-index: 1000; /* Higher than other song items */
+}
+
+/* Sidebar styles */
+.app-container {
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+  max-width: 1200px;
+  margin: 20px auto;
+  padding: 0 20px;
+}
+.sidebar {
+  flex: 0 0 250px;
+  padding: 10px;
+  border-right: 1px solid #ccc;
+}
+#results {
+  flex: 1;
+  margin-left: 40px;
+  margin-top: 20px;
+}
+.playlist {
+  cursor: pointer;
+  font-weight: bold;
+  padding: 5px 0;
+}
+.playlist-songs {
+  padding-left: 15px;
+  display: none;
+}
+.playlist-songs.show {
+  display: block;
 }

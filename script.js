@@ -122,6 +122,9 @@ async function searchMusic() {
 
         responseContainer.appendChild(div);
       });
+      // Get playlist data
+      await fetchPlaylists();
+
     } else {
       // CHANGED: Updated no results message to match new design
       responseContainer.innerHTML = `
@@ -141,6 +144,40 @@ async function searchMusic() {
   }
 }
 
+// Build sidebar
+function renderSidebar() {
+  const sidebar = document.getElementById("playlist-list");
+  sidebar.innerHTML = ""; // Clear old playlists
+
+  Object.keys(playlists).forEach(playlistName => {
+    const container = document.createElement("div");
+
+    // Playlist Name
+    const title = document.createElement("div");
+    title.classList.add("playlist");
+    title.textContent = playlistName;
+
+    // Songs List
+    const songsList = document.createElement("div");
+    songsList.classList.add("playlist-songs");
+
+    (playlists[playlistName] || []).forEach(song => {
+      const songItem = document.createElement("div");
+      songItem.textContent = `${song.title} - ${song.artist}`;
+      songsList.appendChild(songItem);
+    });
+
+    // Toggle Logic
+    title.addEventListener("click", () => {
+      songsList.classList.toggle("show");
+    });
+
+    container.appendChild(title);
+    container.appendChild(songsList);
+    sidebar.appendChild(container);
+  });
+}
+
 let playlists = [];
 // Get current user's playlists from Firestore; store 
 // them in 'playlist' variable
@@ -157,7 +194,9 @@ async function fetchPlaylists() {
   } else {
     playlists = {};
   }
+  renderSidebar();
 }
+
 
 // As long as the name isn't already used, create
 // a new empty playlist in Firestore
