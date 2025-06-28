@@ -8,6 +8,7 @@ import {
   setDoc
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+// Set up connection to Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyC_Rj7M8HvZKTgy-eWMrrHmmtR1Snh81cM",
   authDomain: "melodymind-sum2025.firebaseapp.com",
@@ -22,27 +23,27 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// Memory of current user's playlist
+let playlists = [];
 
-// CHANGED: Updated searchMusic function to match new HTML structure
+// Reads prompt + displays backend's song recommendations
 async function searchMusic() {
   const prompt = document.getElementById("prompt").value;
   const responseContainer = document.getElementById("results");
 
   if (!prompt.trim()) return;
 
-  // CHANGED: Updated loading message to match new design
   responseContainer.innerHTML = `
     <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 text-center">
       <p class="text-gray-600">Searching for your perfect music...</p>
     </div>
   `;
 
+  // Send POST request to backend API
   try {
     const response = await fetch("http://localhost:5051/search", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ prompt })
     });
 
@@ -52,19 +53,16 @@ async function searchMusic() {
     if (Array.isArray(data) && data.length > 0) {
       responseContainer.innerHTML = "";
 
-      // CHANGED: Updated forEach loop to match new design while keeping playlist functionality
       data.forEach(item => {
         const div = document.createElement("div");
-        // CHANGED: Updated className to match new design
         div.className = "song-item bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/50 mb-4";
 
-        // CHANGED: Updated innerHTML to match new design structure
+        // Fills in HTML for a returned song
         div.innerHTML = `
           <div class="flex justify-between items-start">
             <div class="flex-1">
               <h3 class="text-xl font-bold text-gray-800 mb-2">${item.title}</h3>
               <p class="text-gray-600 mb-3">by ${item.artist}</p>
-              
               ${item.score ? `
                 <div class="mb-3">
                   <div class="flex justify-between text-sm text-gray-500 mb-1">
@@ -76,41 +74,56 @@ async function searchMusic() {
                   </div>
                 </div>
               ` : ''}
-              
-              ${item.reason ? `
-                <p class="text-gray-600 text-sm mb-4">${item.reason}</p>
-              ` : ''}
-              
+              ${item.reason ? `<p class="text-gray-600 text-sm mb-4">${item.reason}</p>` : ''}
               <div class="flex items-center justify-between">
                 ${item.spotify_url ? `
                   <a href="${item.spotify_url}" target="_blank" rel="noopener noreferrer"
-                     class="inline-flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+                    class="inline-flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
                     <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
                     </svg>
                     <span>Listen on Spotify</span>
                   </a>
                 ` : '<div></div>'}
-                
                 <button class="add-btn" type="button">+</button>
               </div>
             </div>
           </div>
           <div class="playlist-dropdown"></div>
         `;
-
-        // UNCHANGED: Keep existing playlist functionality
+        
+        // --- NEW --- //
+        // Prepares the dropdown menu for user to choose playlists from
         const addBtn = div.querySelector('.add-btn');
         const dropdown = div.querySelector('.playlist-dropdown');
+
+        // --- NEW --- // 
+        // "+" button behavior: show playlist options or prompt login
         addBtn.addEventListener('click', async (event) => {
-          await loadPlaylists(dropdown, item);
           const songItem = event.currentTarget.closest('.song-item');
+          const dropdown = songItem.querySelector('.playlist-dropdown');
+          dropdown.innerHTML = '';
+
+          // Users must be logged in to create playlists
+          if (!auth.currentUser?.uid) {
+            const createOpt = document.createElement('div');
+            createOpt.textContent = 'Create playlist';
+            createOpt.addEventListener('click', async () => {
+              alert('Please log in to create playlists.');
+            });
+            dropdown.appendChild(createOpt);
+          } else {
+            await fetchPlaylists();
+            await loadPlaylists(dropdown, item);
+          }
+
           songItem.classList.toggle('active');
           dropdown.style.left = addBtn.offsetLeft + 'px';
           dropdown.classList.toggle('show');
         });
 
-        // Close and remove active class
+        // --- NEW --- //
+        // Close dropdown menus when user clicks elsewhere on the page
         document.addEventListener('click', (e) => {
           if (!e.target.closest('.song-item')) {
             document.querySelectorAll('.song-item.active').forEach(el => el.classList.remove('active'));
@@ -122,11 +135,9 @@ async function searchMusic() {
 
         responseContainer.appendChild(div);
       });
-      // Get playlist data
-      await fetchPlaylists();
 
+      await fetchPlaylists();
     } else {
-      // CHANGED: Updated no results message to match new design
       responseContainer.innerHTML = `
         <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 text-center">
           <p class="text-gray-600">No results found. Try describing your mood differently!</p>
@@ -135,7 +146,6 @@ async function searchMusic() {
     }
   } catch (error) {
     console.error("Fetch error:", error);
-    // CHANGED: Updated error message to match new design
     responseContainer.innerHTML = `
       <div class="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 text-center">
         <p class="text-red-600">Unable to connect to music service. Please try again.</p>
@@ -144,30 +154,29 @@ async function searchMusic() {
   }
 }
 
-// Build sidebar
+// --- NEW --- //
+// Creates and populates left sidebar with playlists
 function renderSidebar() {
   const sidebar = document.getElementById("playlist-list");
-  sidebar.innerHTML = ""; // Clear old playlists
-
+  sidebar.innerHTML = "";
   Object.keys(playlists).forEach(playlistName => {
     const container = document.createElement("div");
-
-    // Playlist Name
+    // --- NEW --- //
+    // Playlist title (clickable to toggle its songs)
     const title = document.createElement("div");
     title.classList.add("playlist");
     title.textContent = playlistName;
 
-    // Songs List
     const songsList = document.createElement("div");
     songsList.classList.add("playlist-songs");
 
+    // Each song within playlist is displayed with title + artist names
     (playlists[playlistName] || []).forEach(song => {
       const songItem = document.createElement("div");
       songItem.textContent = `${song.title} - ${song.artist}`;
       songsList.appendChild(songItem);
     });
 
-    // Toggle Logic
     title.addEventListener("click", () => {
       songsList.classList.toggle("show");
     });
@@ -178,9 +187,9 @@ function renderSidebar() {
   });
 }
 
-let playlists = [];
-// Get current user's playlists from Firestore; store 
-// them in 'playlist' variable
+// --- NEW --- //
+// If user's data exists in Firestore, then extracts 'playlist' field
+// and updates sidebar
 async function fetchPlaylists() {
   const uid = auth.currentUser?.uid;
   if (!uid) return [];
@@ -197,21 +206,18 @@ async function fetchPlaylists() {
   renderSidebar();
 }
 
-
-// As long as the name isn't already used, create
-// a new empty playlist in Firestore
 async function createPlaylist(name) {
   const uid = auth.currentUser?.uid;
   if (!uid) return null;
 
+  // Ensures there are no duplicate playlists
   if (!playlists[name]) playlists[name] = [];
 
+  // Saves user's playlist to Firebase
   await setDoc(doc(db, "users", uid), { playlists }, { merge: true });
-
   return { name };
 }
 
-// Add selected song to the specified playlist, updates Firestore db
 async function addSongToPlaylist(song, playlistName) {
   const uid = auth.currentUser?.uid;
   if (!uid) return;
@@ -223,6 +229,7 @@ async function addSongToPlaylist(song, playlistName) {
   alert(`Added "${song.title}" to playlist "${playlistName}"!`);
 }
 
+// Make sure playlists are loaded before displaying them
 async function loadPlaylists(dropdown, song) {
   if (!Object.keys(playlists).length) {
     await fetchPlaylists();
@@ -230,8 +237,6 @@ async function loadPlaylists(dropdown, song) {
 
   dropdown.innerHTML = '';
 
-  // For each playlist, add clickable option that allows users to
-  // add a song to the playlist
   Object.keys(playlists).forEach(playlistName => {
     const opt = document.createElement('div');
     opt.textContent = playlistName;
@@ -239,7 +244,7 @@ async function loadPlaylists(dropdown, song) {
     dropdown.appendChild(opt);
   });
 
-  // Add "Create playlist" button
+  // Give users a "Create playlist" option
   const createOpt = document.createElement('div');
   createOpt.textContent = 'Create playlist';
   createOpt.addEventListener('click', async () => {
@@ -248,7 +253,7 @@ async function loadPlaylists(dropdown, song) {
       const newPl = await createPlaylist(name);
       if (newPl && newPl.name) {
         playlists[name] = [];
-        await loadPlaylists(dropdown, song); // refresh dropdown
+        await loadPlaylists(dropdown, song);
       }
     } else if (playlists[name]) {
       alert('Playlist already exists.');
@@ -257,10 +262,12 @@ async function loadPlaylists(dropdown, song) {
   dropdown.appendChild(createOpt);
 }
 
-// Fetches user playlists on page load
+// --- NEW --- //
+// Loads and displays sidebar when page first loads 
+// FIX NEEDED: 
+// Contents of sidebar don't appear until after a user enters a prompt
 document.addEventListener('DOMContentLoaded', fetchPlaylists);
 
-// Connect Search button to searchMusic()
 document.addEventListener("DOMContentLoaded", () => {
   const searchBtn = document.querySelector("button");
   if (searchBtn) {
@@ -268,7 +275,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 });
 
-// ADDED: Close dropdown when clicking outside
 document.addEventListener('click', (e) => {
   if (!e.target.closest('.song-item')) {
     document.querySelectorAll('.playlist-dropdown').forEach(dropdown => {
