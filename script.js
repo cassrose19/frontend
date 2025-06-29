@@ -227,6 +227,9 @@ async function addSongToPlaylist(song, playlistName) {
 
   await setDoc(doc(db, "users", uid), { playlists }, { merge: true });
   alert(`Added "${song.title}" to playlist "${playlistName}"!`);
+
+  // Refresh sidebar to show any newly added songs
+  await fetchPlaylists();
 }
 
 // Make sure playlists are loaded before displaying them
