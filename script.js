@@ -277,9 +277,14 @@ auth.onAuthStateChanged((user) => {
   }
 });
 
-
-
 document.addEventListener('DOMContentLoaded', fetchPlaylists);
+
+// Hitting "Enter" key allows users to search their prompt
+document.getElementById("prompt")?.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") {
+    searchMusic();
+  }
+});
 
 document.addEventListener("DOMContentLoaded", () => {
   const searchBtn = document.querySelector("button");
