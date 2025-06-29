@@ -263,9 +263,19 @@ async function loadPlaylists(dropdown, song) {
 }
 
 // --- NEW --- //
-// Loads and displays sidebar when page first loads 
-// FIX NEEDED: 
-// Contents of sidebar don't appear until after a user enters a prompt
+// Loads and displays sidebar when user logs in 
+auth.onAuthStateChanged((user) => {
+  if (user) {
+    fetchPlaylists();  // Load playlists into sidebar
+  } else {
+    // Optional: Clear playlists if user logs out
+    const sidebar = document.getElementById("playlist-list");
+    sidebar.innerHTML = '<p class="text-gray-500 px-4">Log in to see your playlists</p>';
+  }
+});
+
+
+
 document.addEventListener('DOMContentLoaded', fetchPlaylists);
 
 document.addEventListener("DOMContentLoaded", () => {
