@@ -26,6 +26,20 @@ const db = getFirestore(app);
 // Memory of current user's playlist
 let playlists = [];
 
+// Turns a full Spotify URL into URI, then into Spotify's waveform code
+function getSpotifyCode(url) {
+  try {
+    const parts = new URL(url).pathname.split('/');
+    const type = parts[1]; // "track", "album", etc.
+    const id = parts[2];   // actual Spotify ID
+    const uri = `spotify:${type}:${id}`;
+    return `https://scannables.scdn.co/uri/plain/jpeg/000000/white/640/${uri}`;
+  } catch (e) {
+    console.error('Invalid Spotify URL:', url);
+    return '';
+  }
+}
+
 // Reads prompt + displays backend's song recommendations
 async function searchMusic() {
   const prompt = document.getElementById("prompt").value;
@@ -54,6 +68,9 @@ async function searchMusic() {
       responseContainer.innerHTML = "";
 
       data.forEach(item => {
+        console.log("title:", item.title);
+        console.log("spotify_url:", item.spotify_url);
+
         const div = document.createElement("div");
         div.className = "song-item bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-lg border border-white/50 mb-4";
 
@@ -63,6 +80,11 @@ async function searchMusic() {
             <div class="flex-1">
               <h3 class="text-xl font-bold text-gray-800 mb-2">${item.title}</h3>
               <p class="text-gray-600 mb-3">by ${item.artist}</p>
+              <a href="${item.spotify_url}" target="_blank" rel="noopener noreferrer">
+              <img src="https://scannables.scdn.co/uri/plain/png/000000/white/640/spotify:track:1EzrEOXmMH3G43AXT1y7pA"
+                    alt="Spotify Code"
+                    style="margin-top: 1rem; width: 180px; border-radius: 8px;" />
+              </a>
               ${item.score ? `
                 <div class="mb-3">
                   <div class="flex justify-between text-sm text-gray-500 mb-1">
@@ -77,13 +99,18 @@ async function searchMusic() {
               ${item.reason ? `<p class="text-gray-600 text-sm mb-4">${item.reason}</p>` : ''}
               <div class="flex items-center justify-between">
                 ${item.spotify_url ? `
-                  <a href="${item.spotify_url}" target="_blank" rel="noopener noreferrer"
-                    class="inline-flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
-                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
-                    </svg>
-                    <span>Listen on Spotify</span>
-                  </a>
+                  <div class="flex flex-col items-start space-y-2">
+                    <img src="${getSpotifyCode(item.spotify_url)}"
+                      alt="Spotify Code"
+                      style="margin-top: 1rem; width: 180px; border-radius: 8px;" />
+                    <a href="${item.spotify_url}" target="_blank" rel="noopener noreferrer"
+                      class="inline-flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
+                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
+                      </svg>
+                      <span>Listen on Spotify</span>
+                    </a>
+                  </div>
                 ` : '<div></div>'}
                 <button class="add-btn" type="button">+</button>
               </div>
@@ -91,7 +118,7 @@ async function searchMusic() {
           </div>
           <div class="playlist-dropdown"></div>
         `;
-        
+
         // --- NEW --- //
         // Prepares the dropdown menu for user to choose playlists from
         const addBtn = div.querySelector('.add-btn');
