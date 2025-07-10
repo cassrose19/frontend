@@ -40,6 +40,21 @@ function getSpotifyCode(url) {
   }
 }
 
+// --- iTunes Search API helper function --- //
+async function fetchSongPreview(songName, artistName) {
+  const query = encodeURIComponent(`${songName} ${artistName}`);
+  const url = `https://itunes.apple.com/search?term=${query}&entity=song&limit=1`;
+
+  const response = await fetch(url);
+  const data = await response.json();
+  if (data.results.length > 0) {
+    return data.results[0].previewUrl; // 30s song sample
+  } else {
+    return null;
+  }
+}
+
+
 // Reads prompt + displays backend's song recommendations
 async function searchMusic() {
   const prompt = document.getElementById("prompt").value;
@@ -108,6 +123,16 @@ async function searchMusic() {
           </div>
           <div class="playlist-dropdown"></div>
         `;
+        // Fetch iTunes song preview + append <audio> player
+        fetchSongPreview(item.title, item.artist).then(previewUrl => {
+          if (previewUrl) {
+            const audio = document.createElement('audio');
+            audio.controls = true;
+            audio.src = previewUrl;
+            audio.style.marginTop = '1rem';
+            div.appendChild(audio);
+          }
+        });
 
         // --- NEW --- //
         // Prepares the dropdown menu for user to choose playlists from
