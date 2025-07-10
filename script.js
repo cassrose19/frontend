@@ -80,11 +80,6 @@ async function searchMusic() {
             <div class="flex-1">
               <h3 class="text-xl font-bold text-gray-800 mb-2">${item.title}</h3>
               <p class="text-gray-600 mb-3">by ${item.artist}</p>
-              <a href="${item.spotify_url}" target="_blank" rel="noopener noreferrer">
-              <img src="https://scannables.scdn.co/uri/plain/png/000000/white/640/spotify:track:1EzrEOXmMH3G43AXT1y7pA"
-                    alt="Spotify Code"
-                    style="margin-top: 1rem; width: 180px; border-radius: 8px;" />
-              </a>
               ${item.score ? `
                 <div class="mb-3">
                   <div class="flex justify-between text-sm text-gray-500 mb-1">
@@ -97,23 +92,18 @@ async function searchMusic() {
                 </div>
               ` : ''}
               ${item.reason ? `<p class="text-gray-600 text-sm mb-4">${item.reason}</p>` : ''}
-              <div class="flex items-center justify-between">
-                ${item.spotify_url ? `
-                  <div class="flex flex-col items-start space-y-2">
+            <div class="flex items-center justify-between">
+              ${item.spotify_url ? `
+                <div class="flex flex-col items-start space-y-2">
+                  <a href="${item.spotify_url}" target="_blank" rel="noopener noreferrer">
                     <img src="${getSpotifyCode(item.spotify_url)}"
                       alt="Spotify Code"
                       style="margin-top: 1rem; width: 180px; border-radius: 8px;" />
-                    <a href="${item.spotify_url}" target="_blank" rel="noopener noreferrer"
-                      class="inline-flex items-center space-x-2 bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200">
-                      <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M19 19H5V5h7V3H5c-1.11 0-2 .9-2 2v14c0 1.1 0 2-.9 2-2v-7h-2v7zM14 3v2h3.59l-9.83 9.83 1.41 1.41L19 6.41V10h2V3h-7z"/>
-                      </svg>
-                      <span>Listen on Spotify</span>
-                    </a>
-                  </div>
-                ` : '<div></div>'}
-                <button class="add-btn" type="button">+</button>
-              </div>
+                  </a>
+                </div>
+              ` : '<div></div>'}
+              <button class="add-btn" type="button">+</button>
+            </div>
             </div>
           </div>
           <div class="playlist-dropdown"></div>
