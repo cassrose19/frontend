@@ -238,6 +238,12 @@ async function searchMusic() {
                   <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
                 </svg>
               </button>
+              <!-- Add to Playlist Button -->
+              <button class="add-btn" type="button" title="Add to Playlist" style="margin-top:8px;margin-left:0px;background:none;border:none;padding:0;cursor:pointer;align-self:flex-start;">
+                <svg class="w-6 h-6 text-gray-400 hover:text-pastel-lavender transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                </svg>
+              </button>
             </div>
             <!-- Main Info -->
             <div class="song-item-main flex-1 min-w-0">
@@ -560,7 +566,10 @@ async function loadPlaylists(dropdown, song) {
   Object.keys(playlists).forEach(playlistName => {
     const opt = document.createElement('div');
     opt.textContent = playlistName;
-    opt.addEventListener('click', () => addSongToPlaylist(song, playlistName));
+    opt.addEventListener('click', async () => {
+      await addSongToPlaylist(song, playlistName);
+      dropdown.classList.remove('show'); // close dropdown after adding
+    });
     dropdown.appendChild(opt);
   });
 
@@ -578,6 +587,7 @@ async function loadPlaylists(dropdown, song) {
     } else if (playlists[name]) {
       alert('Playlist already exists.');
     }
+    dropdown.classList.remove('show'); // close dropdown after creating
   });
   dropdown.appendChild(createOpt);
 }
