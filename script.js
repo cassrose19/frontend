@@ -42,49 +42,69 @@ function cleanLyrics(lyrics) {
 
 // Range slider value updates
 document.addEventListener('DOMContentLoaded', function() {
-  // Energy level sliders
+  // Energy level dual-thumb slider with highlight
   const energyMin = document.getElementById('energy_min');
   const energyMax = document.getElementById('energy_max');
   const energyMinVal = document.getElementById('energy_min_val');
   const energyMaxVal = document.getElementById('energy_max_val');
+  const energyHighlight = document.getElementById('energy_range_highlight');
 
-  energyMin.addEventListener('input', function() {
-    energyMinVal.textContent = parseFloat(this.value).toFixed(1);
-    if (parseFloat(this.value) > parseFloat(energyMax.value)) {
-      energyMax.value = this.value;
-      energyMaxVal.textContent = parseFloat(this.value).toFixed(1);
+  function updateEnergySlider() {
+    let min = parseFloat(energyMin.value);
+    let max = parseFloat(energyMax.value);
+    if (min > max) {
+      min = max;
+      energyMin.value = min;
     }
-  });
+    energyMinVal.textContent = min.toFixed(2);
+    energyMaxVal.textContent = max.toFixed(2);
 
-  energyMax.addEventListener('input', function() {
-    energyMaxVal.textContent = parseFloat(this.value).toFixed(1);
-    if (parseFloat(this.value) < parseFloat(energyMin.value)) {
-      energyMin.value = this.value;
-      energyMinVal.textContent = parseFloat(this.value).toFixed(1);
+    // Highlight bar between min and max
+    if (energyHighlight) {
+      const rangeWidth = energyMin.offsetWidth;
+      const minPercent = min / 1;
+      const maxPercent = max / 1;
+      const left = minPercent * rangeWidth;
+      const width = (maxPercent - minPercent) * rangeWidth;
+      energyHighlight.style.left = left + 'px';
+      energyHighlight.style.width = width + 'px';
     }
-  });
+  }
+  energyMin.addEventListener('input', updateEnergySlider);
+  energyMax.addEventListener('input', updateEnergySlider);
+  updateEnergySlider();
 
-  // Popularity sliders
+  // Popularity dual-thumb slider
   const popularityMin = document.getElementById('popularity_min');
   const popularityMax = document.getElementById('popularity_max');
   const popularityMinVal = document.getElementById('popularity_min_val');
   const popularityMaxVal = document.getElementById('popularity_max_val');
+  const popularityHighlight = document.getElementById('popularity_range_highlight');
 
-  popularityMin.addEventListener('input', function() {
-    popularityMinVal.textContent = this.value;
-    if (parseInt(this.value) > parseInt(popularityMax.value)) {
-      popularityMax.value = this.value;
-      popularityMaxVal.textContent = this.value;
+  function updatePopularitySlider() {
+    let min = parseInt(popularityMin.value);
+    let max = parseInt(popularityMax.value);
+    if (min > max) {
+      min = max;
+      popularityMin.value = min;
     }
-  });
+    popularityMinVal.textContent = min;
+    popularityMaxVal.textContent = max;
 
-  popularityMax.addEventListener('input', function() {
-    popularityMaxVal.textContent = this.value;
-    if (parseInt(this.value) < parseInt(popularityMin.value)) {
-      popularityMin.value = this.value;
-      popularityMinVal.textContent = this.value;
+    // Highlight bar between min and max
+    if (popularityHighlight) {
+      const rangeWidth = popularityMin.offsetWidth;
+      const minPercent = min / 100;
+      const maxPercent = max / 100;
+      const left = minPercent * rangeWidth;
+      const width = (maxPercent - minPercent) * rangeWidth;
+      popularityHighlight.style.left = left + 'px';
+      popularityHighlight.style.width = width + 'px';
     }
-  });
+  }
+  popularityMin.addEventListener('input', updatePopularitySlider);
+  popularityMax.addEventListener('input', updatePopularitySlider);
+  updatePopularitySlider();
 
   // Search button event
   const searchBtn = document.getElementById('search-btn');
