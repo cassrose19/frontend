@@ -164,17 +164,6 @@ async function searchMusic() {
           dropdown.classList.toggle('show');
         });
 
-        // --- NEW --- //
-        // Close dropdown menus when user clicks elsewhere on the page
-        document.addEventListener('click', (e) => {
-          if (!e.target.closest('.song-item')) {
-            document.querySelectorAll('.song-item.active').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.playlist-dropdown.show').forEach(dropdown => {
-              dropdown.classList.remove('show');
-            });
-          }
-        });
-
         responseContainer.appendChild(div);
       });
 
