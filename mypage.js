@@ -188,6 +188,10 @@ async function editPlaylistName(oldName) {
     playlists[newName] = playlists[oldName];
     delete playlists[oldName];
     await savePlaylistsToBackend();
+    // remove old playlist from backend
+    await fetch(`http://localhost:5051/playlists/${currentUser.uid}/${encodeURIComponent(oldName)}`, {
+      method: 'DELETE'
+    });
     renderPlaylists();
   } catch (error) {
     console.error('Error editing playlist:', error);
@@ -227,7 +231,6 @@ function showPlaylistModal(playlistName) {
 
   const playlist = playlists[playlistName];
   
-  // 곡 정보가 있는 것만 표시
   const validSongs = playlist.filter(song => song && song.title && song.artist);
   if (validSongs.length === 0) {
     modalContent.innerHTML = `
