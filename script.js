@@ -1,6 +1,6 @@
 // Firebase imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
 import {
   getFirestore,
   doc,
@@ -42,6 +42,44 @@ function cleanLyrics(lyrics) {
 
 // Range slider value updates
 document.addEventListener('DOMContentLoaded', function() {
+  // Authentication state handling
+  onAuthStateChanged(auth, (user) => {
+    const loginBtn = document.getElementById('login-btn');
+    const userInfo = document.getElementById('user-info');
+    const userName = document.getElementById('user-name');
+    
+    if (user) {
+      // User is logged in
+      loginBtn.style.display = 'none';
+      userInfo.classList.remove('hidden');
+      userName.textContent = user.displayName || user.email;
+      fetchPlaylists(); // Load playlists into sidebar
+    } else {
+      // User is not logged in
+      loginBtn.style.display = 'block';
+      userInfo.classList.add('hidden');
+      // Clear playlists if user logs out
+      const sidebar = document.getElementById("playlist-list");
+      if (sidebar) {
+        sidebar.innerHTML = '<p class="text-gray-500 px-4">Log in to see your playlists</p>';
+      }
+    }
+  });
+
+  // Logout button event
+  const logoutBtn = document.getElementById('logout-btn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      try {
+        await signOut(auth);
+        // Redirect will be handled by onAuthStateChanged
+      } catch (error) {
+        console.error('Error logging out:', error);
+        alert('Error logging out. Please try again.');
+      }
+    });
+  }
+
   // Energy level dual-thumb slider with highlight
   const energyMin = document.getElementById('energy_min');
   const energyMax = document.getElementById('energy_max');
@@ -112,58 +150,6 @@ document.addEventListener('DOMContentLoaded', function() {
     searchBtn.addEventListener('click', searchMusic);
   }
 
-  // New playlist button event
-  const newPlaylistBtn = document.getElementById('new-playlist-btn');
-  if (newPlaylistBtn) {
-    newPlaylistBtn.addEventListener('click', async function() {
-      // Check if user is logged in
-      if (!auth.currentUser?.uid) {
-        alert('Please log in to create playlists.');
-        return;
-      }
-
-      const name = prompt('Enter playlist name:');
-      if (name && name.trim()) {
-        if (playlists[name]) {
-          alert('Playlist already exists.');
-          return;
-        }
-        
-        try {
-          // Create new playlist
-          playlists[name] = [];
-          
-          // Save to Firestore
-          const uid = auth.currentUser.uid;
-          await setDoc(doc(db, "users", uid), { playlists: playlists }, { merge: true });
-          
-          // Update UI
-          renderSidebar();
-          
-          // Visual feedback
-          this.innerHTML = `
-            <svg class="w-4 h-4 mr-2 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            Created!
-          `;
-          
-          setTimeout(() => {
-            this.innerHTML = `
-              <svg class="w-4 h-4 mr-2 group-hover:rotate-180 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-              </svg>
-              New Playlist
-            `;
-          }, 2000);
-          
-        } catch (error) {
-          console.error('Error creating playlist:', error);
-          alert('Failed to create playlist. Please try again.');
-        }
-      }
-    });
-  }
 });
 
 // Turns a full Spotify URL into URI, then into Spotify's waveform code
@@ -531,19 +517,22 @@ function renderSidebar() {
 }
 
 // --- NEW --- //
-// If user's data exists in Firestore, then extracts 'playlist' field
+// If user's data exists in backend, then extracts 'playlist' field
 // and updates sidebar
 async function fetchPlaylists() {
   const uid = auth.currentUser?.uid;
   if (!uid) return [];
 
-  const docRef = doc(db, "users", uid);
-  const docSnap = await getDoc(docRef);
-
-  if (docSnap.exists()) {
-    const data = docSnap.data();
-    playlists = data.playlists || {};
-  } else {
+  try {
+    const response = await fetch(`http://localhost:5051/playlists/${uid}`);
+    if (response.ok) {
+      const data = await response.json();
+      playlists = data.playlists || {};
+    } else {
+      playlists = {};
+    }
+  } catch (error) {
+    console.error('Error fetching playlists:', error);
     playlists = {};
   }
   renderSidebar();
@@ -556,9 +545,29 @@ async function createPlaylist(name) {
   // Ensures there are no duplicate playlists
   if (!playlists[name]) playlists[name] = [];
 
-  // Saves user's playlist to Firebase
-  await setDoc(doc(db, "users", uid), { playlists }, { merge: true });
-  return { name };
+  // Saves user's playlist to backend
+  try {
+    const response = await fetch('http://localhost:5051/playlists', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user_id: uid,
+        playlist_name: name,
+        songs: playlists[name]
+      })
+    });
+
+    if (response.ok) {
+      return { name };
+    } else {
+      throw new Error('Failed to create playlist');
+    }
+  } catch (error) {
+    console.error('Error creating playlist:', error);
+    return null;
+  }
 }
 
 async function addSongToPlaylist(song, playlistName) {
@@ -568,11 +577,30 @@ async function addSongToPlaylist(song, playlistName) {
   if (!playlists[playlistName]) playlists[playlistName] = [];
   playlists[playlistName].push(song);
 
-  await setDoc(doc(db, "users", uid), { playlists }, { merge: true });
-  alert(`Added "${song.title}" to playlist "${playlistName}"!`);
+  try {
+    const response = await fetch('http://localhost:5051/playlists', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user_id: uid,
+        playlist_name: playlistName,
+        songs: playlists[playlistName]
+      })
+    });
 
-  // Refresh sidebar to show any newly added songs
-  await fetchPlaylists();
+    if (response.ok) {
+      alert(`Added "${song.title}" to playlist "${playlistName}"!`);
+      // Refresh sidebar to show any newly added songs
+      await fetchPlaylists();
+    } else {
+      throw new Error('Failed to add song to playlist');
+    }
+  } catch (error) {
+    console.error('Error adding song to playlist:', error);
+    alert('Failed to add song to playlist. Please try again.');
+  }
 }
 
 // Make sure playlists are loaded before displaying them
@@ -595,14 +623,16 @@ async function loadPlaylists(dropdown, song) {
 
   // Give users a "Create playlist" option
   const createOpt = document.createElement('div');
-  createOpt.textContent = 'Create playlist';
+  createOpt.textContent = 'New playlist';
   createOpt.addEventListener('click', async () => {
     const name = prompt('New playlist name?');
     if (name && !playlists[name]) {
       const newPl = await createPlaylist(name);
       if (newPl && newPl.name) {
         playlists[name] = [];
-        await loadPlaylists(dropdown, song);
+        await addSongToPlaylist(song, name);
+        dropdown.classList.remove('show');
+        return;
       }
     } else if (playlists[name]) {
       alert('Playlist already exists.');
@@ -620,7 +650,9 @@ auth.onAuthStateChanged((user) => {
   } else {
     // Optional: Clear playlists if user logs out
     const sidebar = document.getElementById("playlist-list");
-    sidebar.innerHTML = '<p class="text-gray-500 px-4">Log in to see your playlists</p>';
+    if (sidebar) {
+      sidebar.innerHTML = '<p class="text-gray-500 px-4">Log in to see your playlists</p>';
+    }
   }
 });
 
