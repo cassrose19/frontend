@@ -1,3 +1,12 @@
+const urlParams = new URLSearchParams(window.location.search);
+const tokenFromURL = urlParams.get("token");
+
+if (tokenFromURL) {
+  localStorage.setItem("spotify_token", tokenFromURL);
+  const cleanURL = window.location.href.split('?')[0];
+  window.history.replaceState({}, document.title, cleanURL);
+}
+
 // Firebase imports
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
@@ -480,8 +489,21 @@ function renderSidebar() {
     const songsList = document.createElement("div");
     songsList.classList.add("playlist-songs");
 
-    // Each song within playlist is displayed with enhanced styling
-    (playlists[playlistName] || []).forEach((song, index) => {
+    const spotifyButton = document.createElement("button");
+    spotifyButton.classList.add("spotify-button");
+    spotifyButton.title = "Create on Spotify";
+    spotifyButton.addEventListener("click", () => createSpotifyPlaylist(playlistName));
+
+    const spotifyIcon = document.createElement("img");
+    spotifyIcon.src = "spotify_logo_image.png";
+    spotifyIcon.alt = "Spotify";
+    spotifyIcon.classList.add("spotify-icon");
+
+    spotifyButton.appendChild(spotifyIcon);
+    container.appendChild(spotifyButton);
+
+    // Each song within playlist is displayed with title + artist names
+    (playlists[playlistName] || []).forEach(song => {
       const songItem = document.createElement("div");
       songItem.className = "playlist-song-item";
       songItem.innerHTML = `
@@ -655,6 +677,34 @@ auth.onAuthStateChanged((user) => {
     }
   }
 });
+
+async function createSpotifyPlaylist(playlistName) {
+  const accessToken = localStorage.getItem("spotify_token");
+  const user = auth.currentUser;
+  if (!accessToken) return alert("Spotify access token missing. Please log in with Spotify.");
+  if (!user) return alert("Must be logged in to sync playlist.");
+
+  const songs = playlists[playlistName] || [];
+  if (songs.length === 0) return alert("Playlist is empty.");
+
+  const response = await fetch("http://localhost:5051/spotify/create-playlist", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      user_id: user.uid,
+      playlist_name: playlistName,
+      access_token: accessToken,
+      songs
+    })
+  });
+
+  const result = await response.json();
+  if (response.ok) {
+    alert("Playlist successfully created on Spotify!");
+  } else {
+    alert("Failed to create Spotify playlist: " + result.detail);
+  }
+}
 
 document.addEventListener('DOMContentLoaded', fetchPlaylists);
 

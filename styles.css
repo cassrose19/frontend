@@ -544,3 +544,22 @@ header {
     margin-top: 8px;
   }
 }
+
+.spotify-button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  vertical-align: middle;
+  margin-left: 8px;
+}
+
+.spotify-icon {
+  width: 20px;
+  height: 20px;
+  transition: transform 0.2 ease;
+}
+
+.spotify-button:hover .spotify-icon {
+  transform: scale(1.1);
+}

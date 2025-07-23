@@ -50,7 +50,7 @@
       const CLIENT_ID = "b6937ebfce5b4e7db6d48ca1eb148796";
       const REDIRECT_URI = "http://127.0.0.1:5051/callback";
       const SCOPES = "playlist-modify-private playlist-modify-public";
-      const authUrl = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES)}`;
+      const authUrl = `https://accounts.spotify.com/authorize?client_id=${CLIENT_ID}&response_type=code&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&scope=${encodeURIComponent(SCOPES)}&show_dialog=true`;
       window.location.href = authUrl;
     };
   </script>
