@@ -198,6 +198,7 @@ async function searchMusic() {
   const energyMin = document.getElementById("energy_min").value;
   const energyMax = document.getElementById("energy_max").value;
   const artist = document.getElementById("artist").value;
+  const mapped_genre = document.getElementById("genre-select").value;
   const popularityMin = document.getElementById("popularity_min").value;
   const popularityMax = document.getElementById("popularity_max").value;
 
@@ -207,8 +208,10 @@ async function searchMusic() {
   if (energyMin) requestBody.energy_min = parseFloat(energyMin);
   if (energyMax) requestBody.energy_max = parseFloat(energyMax);
   if (artist) requestBody.artist = artist;
+  if (mapped_genre && mapped_genre !== "Any") requestBody.mapped_genre = mapped_genre;
   if (popularityMin) requestBody.popularity_min = parseInt(popularityMin);
   if (popularityMax) requestBody.popularity_max = parseInt(popularityMax);
+
 
   // Send POST request to backend API
   try {
@@ -279,6 +282,12 @@ async function searchMusic() {
                     ${item.release_date}
                   </span>
                 ` : ''}
+                ${item.mapped_genre ? `
+                  <span class="flex items-center gap-1">
+                    <i class="fa fa-music text-pink-500"></i>
+                    ${item.mapped_genre}
+                  </span>
+                ` : ''}                
               </div>
               <!-- Platform Icons Only -->
               <div class="flex items-center gap-2 mb-1">
